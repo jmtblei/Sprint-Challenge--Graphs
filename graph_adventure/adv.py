@@ -48,26 +48,76 @@ def reverse(dir):
     if dir == 'e':
         return 'w'
 
-#create new list to handle movement
+#create new list to handle movements that weve made
 movement = []
 #create new dict for visited rooms
 visited = {}
-#assign curret room
+#assign current room
 current = player.currentRoom.id
 
 while len(visited) != len(graph):
     #initialized starting room
-    print("You're currently in", current)
+    print(f"You're currently in room {current}")
     #if not explored, copy from graph dict into visited
     if current not in visited:
         visited[current] = graph[current]
-    #collect list of unvisited rooms 
+    #collect list of unvisited rooms and their directions
     directions = []
     for dir in graph[current]:
-        if graph[current][dir] = '?':
+        if graph[current][dir] == '?':
             directions.append(dir)
     
     #handle dead ends so that you walk back to nearest room
+    #while list of unvisited is empty, and list of movement not empty,
+    while len(directions) == 0 and len(movement) > 0:
+        #remove last move
+        goBack = movement.pop()
+        #add it to our traversal path and print warning
+        traversalPath.append(goBack)
+        print("This is a dead end or I've already visited this room. Tracing my steps backwards now.")
+        #go back, set room back to previous, print message
+        player.travel(goBack)
+        current = player.currentRoom.id
+        print(f"I'm back at room {current}")
+        #check if any unvisited exists in the room we went back to
+        back_directions = []
+        for dir in graph[current]:
+            if graph[current][dir] == '?':
+                back_directions.append(dir)
+        #if empty, repeat
+        directions = back_directions
+    #handle dead end if cant bo back
+    if len(directions) == 0 and len(movement) == 0:
+        break
+
+    #get our next move from first path in directions and reset directions for the next room
+    nextMove = directions[0]
+    directions = []
+    #copy a backwards version of our moves and append it to our movement list
+    backMove = reverse(nextMove)
+    movement.append(backMove)
+    #get the id of next room for our next moves direction
+    if nextMove == "n":
+        nextRoom = player.currentRoom.n_to.id 
+    if nextMove == "s":
+        nextRoom = player.currentRoom.s_to.id 
+    if nextMove == "e":
+        nextRoom = player.currentRoom.e_to.id 
+    if nextMove == "w":
+        nextRoom = player.currentRoom.w_to.id
+    print(f"Currently moving {nextMove} to room {nextRoom} from room {current}")
+    #set id of next room as value for current room of direction moved
+    graph[current][nextMove] = nextRoom
+    #set current room as value for next rooms backmove direction
+    graph[nextRoom][backMove] = current
+    visited[current] = graph[current]
+    #append next move to traversal path and move to next room
+    traversalPath.append(nextMove)
+    player.travel(nextMove)
+    #set current to the new room after we traverse to repeat while loop for next room and keep on traversing
+    current = player.currentRoom.id
+
+print("traverse", traversalPath)
 
 
 # TRAVERSAL TEST
